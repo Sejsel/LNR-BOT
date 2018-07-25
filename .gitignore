@@ -69,3 +69,5 @@ site
 # Command info dump
 commandInfo.json
 docs/js/dist/commands.js*
+
+test_files/
