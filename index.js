@@ -9,7 +9,8 @@ const liTiers = {
     'Tier V': 'roleID5'
 }
 const gw2botID = process.env['GW2BOT_ID']
-const guildName = process.env['DISCORD_CHANNEL_NAME']
+const guildName = process.env['DISCORD_CHANNEL_NAME'] 
+const memberRoleId = process.env['MEMBER_ID']
 var roles = []
 
 var bot = new Eris(process.env['BOT_TOKEN'])
@@ -106,6 +107,7 @@ async function setMemberRole(msg, userId, roleId) {
                     Object.values(liTiers).forEach(tierId => {
                         member.removeRole(tierId, 'cleaning tier roles')
                     });
+                    member.addRole(memberRoleId, 'default member role')
                     member.addRole(roleId, 'granted for having enough LIs')
                     return true
                 }
