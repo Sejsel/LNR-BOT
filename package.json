@@ -1,0 +1,40 @@
+{
+  "name": "lnr-bot",
+  "version": "1.0.0",
+  "description": "Late Night Raid - Discord Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "eslint . && mocha",
+    "start": "nodemon --inspect -e js index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pushpayload/LNR-BOT.git"
+  },
+  "keywords": [
+    "discord",
+    "bot"
+  ],
+  "author": "pushpayload@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pushpayload/LNR-BOT/issues"
+  },
+  "homepage": "https://github.com/pushpayload/LNR-BOT#readme",
+  "dependencies": {
+    "dotenv": "^6.0.0",
+    "eris": "^0.8.6"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.7.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "fs-extra": "^6.0.1",
+    "mocha": "^5.2.0",
+    "standard": "^10.0.3",
+    "uglify-es": "^3.3.9"
+  }
+}
