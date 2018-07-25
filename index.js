@@ -8,7 +8,8 @@ const liTiers = {
     'Tier IV': 'roleID4',
     'Tier V': 'roleID5'
 }
-const gw2botID = '310050883100737536'
+const gw2botID = process.env['GW2BOT_ID']
+const guildName = process.env['DISCORD_CHANNEL_NAME']
 var roles = []
 
 var bot = new Eris(process.env['BOT_TOKEN'])
@@ -17,7 +18,7 @@ var bot = new Eris(process.env['BOT_TOKEN'])
 bot.on('ready', () => { // When the bot is ready
     console.log('Ready!') // Log "Ready!"
     bot.guilds.find(guild => {
-        if (guild.name === 'Team Alpaca [LAMA]') {
+        if (guild.name === guildName) {
             roles = guild.roles
             return true
         }
@@ -28,7 +29,7 @@ bot.on('ready', () => { // When the bot is ready
             liTiers[role.name] = role.id
         }
     })
-    // console.log(liTiers)
+    console.log(liTiers)
 })
 
 bot.on('messageCreate', (msg) => { // When a message is created
@@ -57,7 +58,6 @@ bot.on('messageCreate', (msg) => { // When a message is created
                 } else if (li > 100) {
                     tier = 'Tier I'
                 }
-                var response = 'Detected LI response to user: ' + '@' + user.id + ' , LIs: ' + li + ' giving access to: ' + tier
                 bot.createMessage(
                     msg.channel.id,
                     `Detected LI response to user: <@${user.id}>, GW2 username: ${gw2username}, LIs: ${li} giving access to: ${tier}, roleID: <@&${liTiers[tier]}>`
@@ -111,7 +111,6 @@ async function setMemberRole(msg, userId, roleId) {
                 }
                 return false
             })
-            // console.log(members)
             return true
         }
         return false
@@ -126,7 +125,7 @@ async function setMemberName(msg, userId, gw2username) {
             var members = msg.channel.guild.members
             members.find(member => {
                 if (member.id === userId) {
-                    var nickname = (member.nick ? member.nick : member.user.username)
+                    var nickname = (member.user.username ? member.user.username : '')
                     var newnick = (
                         ((nickname.length + gw2username.length) > 29) ?
                         nickname.substring(0, 32 - (gw2username.length + 4)) + '… (' + gw2username + ')' :
@@ -135,12 +134,10 @@ async function setMemberName(msg, userId, gw2username) {
                     member.edit({
                         nick: newnick
                     })
-                    // console.log(`oldnick: ${member.nick}, newnick: ${newnick}, length: ${newnick.length}`)
                     return true
                 }
                 return false
             })
-            // console.log(members)
             return true
         }
         return false
