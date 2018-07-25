@@ -60,7 +60,7 @@ bot.on('messageCreate', (msg) => { // When a message is created
                 }
                 bot.createMessage(
                     msg.channel.id,
-                    `Detected LI response to user: <@${user.id}>, GW2 username: ${gw2username}, LIs: ${li} giving access to: ${tier}, roleID: <@&${liTiers[tier]}>`
+                    `Detected LI response to user: <@${user.id}>, GW2 username: ${gw2username}, LIs: ${li} giving access to: ${tier}`
                 )
                 setMemberRole(msg, user.id, liTiers[tier], (err, res) => {
                     if (err) {
