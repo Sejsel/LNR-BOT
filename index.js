@@ -9,8 +9,9 @@ const liTiers = {
     'Tier V': 'roleID5'
 }
 const gw2botID = process.env['GW2BOT_ID']
-const guildName = process.env['DISCORD_CHANNEL_NAME'] 
+const guildName = process.env['DISCORD_CHANNEL_NAME']
 const memberRoleId = process.env['MEMBER_ID']
+const debug = process.env['DEBUG']
 var roles = []
 
 var bot = new Eris(process.env['BOT_TOKEN'])
@@ -30,7 +31,12 @@ bot.on('ready', () => { // When the bot is ready
             liTiers[role.name] = role.id
         }
     })
-    console.log(liTiers)
+    if (debug) {
+        console.log('Joined server listing tiers:')
+        console.log(liTiers)
+        console.log(Object.keys(liTiers))
+        console.log('DEBUG ON')
+    }
 })
 
 bot.on('messageCreate', (msg) => { // When a message is created
@@ -59,22 +65,22 @@ bot.on('messageCreate', (msg) => { // When a message is created
                 } else if (li > 100) {
                     tier = 'Tier I'
                 }
-                bot.createMessage(
-                    msg.channel.id,
-                    `Detected LI response to user: <@${user.id}>, GW2 username: ${gw2username}, LIs: ${li} giving access to: ${tier}`
-                )
-                setMemberRole(msg, user.id, liTiers[tier], (err, res) => {
-                    if (err) {
-                        console.error(err)
-                    } else if (res) {
-                        console.log(res)
-                    }
-                })
-                setMemberName(msg, user.id, gw2username, (err, res) => {
-                    if (err) {
-                        console.error(err)
-                    } else if (res) {
-                        console.log(res)
+                setMemberRole(msg, user.id, liTiers[tier]).then((res) => {
+                    setMemberName(msg, user.id, gw2username).then((res) => {
+                        bot.createMessage(
+                            msg.channel.id,
+                            `Detected LI response to user: <@${user.id}>, GW2 username: ${gw2username}, LIs: ${li} giving access to: ${tier}`
+                        )
+                    }).catch((err) => {
+                        console.error(`error: ${err}`)
+                        if (debug) {
+                            bot.createMessage(msg.channel.id, `error: ${err}`)
+                        }
+                    })
+                }).catch((err) => {
+                    console.error(`error: ${err}`)
+                    if (debug) {
+                        bot.createMessage(msg.channel.id, `error: ${err}`)
                     }
                 })
             }
@@ -98,51 +104,93 @@ process.on('uncaughtException', (err) => {
 })
 
 async function setMemberRole(msg, userId, roleId) {
-    var member
-    bot.guilds.find(guild => {
-        if (guild.name === msg.channel.guild.name) {
-            var members = msg.channel.guild.members
-            members.find(member => {
-                if (member.id === userId) {
-                    Object.values(liTiers).forEach(tierId => {
-                        member.removeRole(tierId, 'cleaning tier roles')
-                    });
-                    member.addRole(memberRoleId, 'default member role')
-                    member.addRole(roleId, 'granted for having enough LIs')
-                    return true
-                }
+    return new Promise((resolve, reject) => {
+        bot.guilds.find(guild => {
+            if (guild.name === msg.channel.guild.name) {
+                var members = msg.channel.guild.members
+                members.find(member => {
+                    if (member.id === userId) {
+                        // console.log('logging roles:')
+                        // console.log(member.roles)
+                        let foundRole = member.roles.find(r => getKeyByValue(liTiers, r))
+                        // console.log(`foundRole = ${foundRole}`)
+                        if (foundRole) {
+                            var tierKey = getKeyByValue(liTiers, foundRole)
+                            var tierKeyIndex = Object.keys(liTiers).indexOf(tierKey)
+                            var roleKeyIndex = Object.keys(liTiers).indexOf(getKeyByValue(liTiers, roleId))
+                            if (tierKeyIndex >= roleKeyIndex) {
+                                reject(`new Role lower or same as old role: tierKey = ${tierKey}, tierKeyIndex = ${tierKeyIndex}, roleId = ${roleId}, roleKeyIndex = ${roleKeyIndex}`)
+                            } else {
+                                member.removeRole(foundRole, 'cleaning tier roles').catch((err) => {
+                                    console.error(`error: ${err}`)
+                                    reject(`removeRole error: ${err}`)
+                                }).then(() => {
+                                    member.addRole(memberRoleId, 'default member role').then(() => {
+                                        member.addRole(roleId, 'granted for having enough LIs').then(() => {
+                                            resolve()
+                                        }).catch((err) => {
+                                            console.error(`error: ${err}`)
+                                            reject(`addRole error: ${err}`)
+                                        })
+                                    }).catch((err) => {
+                                        console.error(`error: ${err}`)
+                                        reject(`addRole error: ${err}`)
+                                    })
+                                })
+                            }
+                        } else {
+                            member.addRole(memberRoleId, 'default member role').then(() => {
+                                member.addRole(roleId, 'granted for having enough LIs').then(() => {
+                                    resolve()
+                                }).catch((err) => {
+                                    console.error(`error: ${err}`)
+                                    reject(`addRole error: ${err}`)
+                                })
+                            }).catch((err) => {
+                                console.error(`error: ${err}`)
+                                reject(`addRole error: ${err}`)
+                            })
+                        }
+                    }
+                    return false
+                })
+            } else {
                 return false
-            })
-            return true
-        }
-        return false
+            }
+        })
     })
-    return (null, member)
+}
+
+function getKeyByValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
 }
 
 async function setMemberName(msg, userId, gw2username) {
-    var member
-    bot.guilds.find(guild => {
-        if (guild.name === msg.channel.guild.name) {
-            var members = msg.channel.guild.members
-            members.find(member => {
-                if (member.id === userId) {
-                    var nickname = (member.user.username ? member.user.username : '')
-                    var newnick = (
-                        ((nickname.length + gw2username.length) > 29) ?
-                        nickname.substring(0, 32 - (gw2username.length + 4)) + '… (' + gw2username + ')' :
-                        nickname.substring(0, 32 - (gw2username.length + 3)) + ' (' + gw2username + ')'
-                    )
-                    member.edit({
-                        nick: newnick
-                    })
-                    return true
-                }
-                return false
-            })
-            return true
-        }
-        return false
+    return new Promise((resolve, reject) => {
+        bot.guilds.find(guild => {
+            if (guild.name === msg.channel.guild.name) {
+                var members = msg.channel.guild.members
+                members.find(member => {
+                    if (member.id === userId) {
+                        var nickname = (member.user.username ? member.user.username : '')
+                        var newnick = (
+                            ((nickname.length + gw2username.length) > 29) ?
+                            nickname.substring(0, 32 - (gw2username.length + 4)) + '… (' + gw2username + ')' :
+                            nickname.substring(0, 32 - (gw2username.length + 3)) + ' (' + gw2username + ')'
+                        )
+                        member.edit({
+                            nick: newnick
+                        }).catch((err) => {
+                            console.error(`error: ${err}`)
+                            reject(`setMemberName error: ${err}`)
+                        }).then(() => {
+                            resolve()
+                        })
+                    }
+                    return false
+                })
+            }
+            return false
+        })
     })
-    return (null, member)
 }
