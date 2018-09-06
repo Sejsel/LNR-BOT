@@ -54,15 +54,15 @@ bot.on('messageCreate', (msg) => { // When a message is created
             if (msg.embeds[0].title.includes('Legendary Insights Earned')) {
                 var gw2username = msg.embeds[0].author.name
                 li = msg.embeds[0].title.split(' ')[0]
-                if (li > 500) {
+                if (li >= 500) {
                     tier = 'Tier V'
-                } else if (li > 400) {
+                } else if (li >= 400) {
                     tier = 'Tier IV'
-                } else if (li > 300) {
+                } else if (li >= 300) {
                     tier = 'Tier III'
-                } else if (li > 200) {
+                } else if (li >= 200) {
                     tier = 'Tier II'
-                } else if (li > 100) {
+                } else if (li >= 100) {
                     tier = 'Tier I'
                 }
                 setMemberRole(msg, user.id, liTiers[tier]).then((res) => {
