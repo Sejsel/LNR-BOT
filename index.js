@@ -51,7 +51,7 @@ bot.on('messageCreate', (msg) => { // When a message is created
             var attachments = msg.attachments
             var li = 0
             var tier = 'Little Bee'
-            if (msg.embeds[0].title.includes('Legendary Insights Earned')) {
+            if (msg.embeds[0].title.includes('Legendary Insights and Divinations earned')) {
                 var gw2username = msg.embeds[0].author.name
                 li = msg.embeds[0].title.split(' ')[0]
                 if (li >= 500) {
