@@ -66,11 +66,13 @@ bot.on('messageCreate', (msg) => { // When a message is created
                     tier = 'Tier I'
                 }
                 setMemberRole(msg, user.id, liTiers[tier]).then((res) => {
-                    setMemberName(msg, user.id, gw2username).then((res) => {
-                        bot.createMessage(
-                            msg.channel.id,
-                            `Detected LI response to user: <@${user.id}>, GW2 username: ${gw2username}, LIs: ${li} giving access to: ${tier}`
-                        )
+                    if (res) {
+                        setMemberName(msg, user.id, gw2username).then((res) => {
+                            bot.createMessage(
+                                msg.channel.id,
+                                `Detected LI response to user: <@${user.id}>, GW2 username: ${gw2username}, LIs: ${li} giving access to: ${tier}`
+                            )
+                        }
                     }).catch((err) => {
                         console.error(`error: ${err}`)
                         if (debug) {
@@ -127,7 +129,7 @@ async function setMemberRole(msg, userId, roleId) {
                                 }).then(() => {
                                     member.addRole(memberRoleId, 'default member role').then(() => {
                                         member.addRole(roleId, 'granted for having enough LIs').then(() => {
-                                            resolve()
+                                            resolve(false)
                                         }).catch((err) => {
                                             console.error(`error: ${err}`)
                                             reject(`addRole error: ${err}`)
@@ -141,7 +143,7 @@ async function setMemberRole(msg, userId, roleId) {
                         } else {
                             member.addRole(memberRoleId, 'default member role').then(() => {
                                 member.addRole(roleId, 'granted for having enough LIs').then(() => {
-                                    resolve()
+                                    resolve(true)
                                 }).catch((err) => {
                                     console.error(`error: ${err}`)
                                     reject(`addRole error: ${err}`)
